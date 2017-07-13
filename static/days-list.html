@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="./pub/css/bootstrap.min.css">
+    <style>
+        .breadcrumb {
+            background: none;
+        }
+        
+        .days {
+            text-align: center;
+        }
+        
+        .days>li+li:before {
+            content: '';
+        }
+        
+        .days>li:not(:nth-child(2)) {
+            color: #337ab7;
+        }
+        
+        .days>li:not(:nth-child(2)):hover {
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <ol class="breadcrumb">
+            <li><a href="./box-list.html">氢考勤盒子列表</a></li>
+            <li class="active">考勤记录</li>
+            <li class="active" id="companyName">杭州复睿-HZFR</li>
+        </ol>
+        <ol class="breadcrumb days">
+            <li id="goBack" class="active"><button class="btn btn-default">前一天</button></li>
+            <li id="date"></li>
+            <li id="goNext"><button class="btn btn-default">后一天</button></li>
+        </ol>
+        <table class="table table-bordered table-hover" id="boxList">
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>userId</th>
+                    <th>首次记录时间</th>
+                    <th>最后记录时间</th>
+                    <th>openId</th>
+                </tr>
+            </thead>
+            <tbody id="daysListBody">
+            </tbody>
+        </table>
+    </div>
+    <script type="text/javascript" src="pub/js/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="js/days-list.js"></script>
+</body>
+
+</html>

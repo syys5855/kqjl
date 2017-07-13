@@ -1,0 +1,9 @@
+dist
+node_modules
+fuma.rar
+node_modules/**
+server.js
+.idea
+.svn
+.sass-cache
+*.zip

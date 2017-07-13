@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="./pub/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <ol class="breadcrumb">
+            <li><a href="./box-list.html">氢考勤盒子列表</a></li>
+            <li class="active">盒子流水</li>
+            <li class="active" id="hostid"></li>
+        </ol>
+        <table class="table table-bordered" id="boxList">
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>hostId</th>
+                    <th>IP</th>
+                    <th>当前版本</th>
+                    <th>事件</th>
+                    <th>结果</th>
+                    <th>时间</th>
+                </tr>
+            </thead>
+            <tbody id="boxListBody">
+            </tbody>
+        </table>
+        <div id="page"></div>
+        <p class="text-center">
+            <button type="button" class="btn btn-success" id="btnLoad">点击加载更多</button>
+        </p>
+    </div>
+
+    <script type="text/javascript" src="pub/js/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="pub/laypage/laypage.js"></script>
+    <script type="text/javascript" src="js/box-water.js"></script>
+</body>
+
+</html>

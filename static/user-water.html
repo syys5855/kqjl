@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="./pub/css/bootstrap.min.css">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <ol class="breadcrumb">
+            <li><a href="./box-list.html">氢考勤盒子列表</a></li>
+            <li class="active">用户流水</li>
+            <li class="active" id="hostid"></li>
+        </ol>
+        <table class="table table-bordered" id="boxList">
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>userId</th>
+                    <th>openId</th>
+                    <th>动作</th>
+                    <th>结果</th>
+                    <th>时间</th>
+                </tr>
+            </thead>
+            <tbody id="userWaterBody">
+            </tbody>
+        </table>
+        <!--<div id="page"></div>-->
+    </div>
+    <p class="text-center">
+        <button type="button" class="btn btn-success" id="btnLoad">点击加载更多</button>
+    </p>
+    <script type="text/javascript" src="pub/js/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="pub/laypage/laypage.js"></script>
+    <script type="text/javascript" src="js/user-water.js"></script>
+</body>
+
+</html>
