@@ -45,7 +45,7 @@ $(function() {
 
     paramBWU = {
         hostId: hostId,
-        pageSize: 20,
+        pageSize: 100,
         lastTime: undefined
     };
     $("#hostid").html(hostId + "-" + company);

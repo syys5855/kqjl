@@ -1,6 +1,7 @@
 var sqlite3 = require('sqlite3');
 var apiUtils = require('../api/apiUtils.js');
 var db = undefined;
+var defaultHostId = 'hostIdTestAbcd';
 exports.connect = function(callback) {
     db = new sqlite3.Database("./db/dbkq.sqlite3", sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
         function(err) {
@@ -32,7 +33,7 @@ exports.setup = function(callback) {
     });
 
     // 用户权限表
-    db.run('CREATE TABLE IF NOT EXISTS user_authority(id INTEGER PRIMARY KEY AUTOINCREMENT,userId VARCHAR(32),warn VARCHAR(1),FOREIGN KEY(userId) REFERENCES  user(id));', err => {
+    db.run('CREATE TABLE IF NOT EXISTS user_authority(userId VARCHAR(32),hostId VARCHAR(32),warn VARCHAR(1),FOREIGN KEY(userId) REFERENCES  user(id),FOREIGN KEY(hostId) REFERENCES box(id),PRIMARY KEY(userId,hostId));', err => {
         callback(err);
     });
 }
@@ -247,9 +248,9 @@ exports.findBoxById = (id) => {
 
 
 // 获取用户的权限
-exports.findAllUserAuthority = () => {
+exports.findAllUserAuthority = (hostId = defaultHostId) => {
     return new Promise((res, rej) => {
-        db.all('select u.*, ua.warn as warn from user as u left join  user_authority as ua on u.id=ua.userId;', (err, data) => {
+        db.all('select u.*, ua.warn as warn from user as u left join  user_authority as ua on u.id=ua.userId where u.hostId=?', hostId, (err, data) => {
             if (err) {
                 rej(err);
             } else {
@@ -260,9 +261,9 @@ exports.findAllUserAuthority = () => {
 }
 
 // 添加一个接收告警通知
-exports.addUserAuthorityWarn = (userId) => {
+exports.addUserAuthorityWarn = (userId, hostId = defaultHostId) => {
     return new Promise((res, rej) => {
-        db.run('INSERT INTO user_authority (id,userId,warn) VALUES(null,?,?);', [userId, '1'], (err) => {
+        db.run('INSERT INTO user_authority (hostId,userId,warn) VALUES(?,?,?);', [hostId, userId, '1'], (err) => {
             if (err) {
                 rej(err);
             } else {
@@ -272,9 +273,9 @@ exports.addUserAuthorityWarn = (userId) => {
     });
 }
 
-exports.removeUserAuthorityWarn = (userId) => {
+exports.removeUserAuthorityWarn = (userId, hostId = defaultHostId) => {
     return new Promise((res, rej) => {
-        db.run('DELETE FROM user_authority WHERE userId =?;', userId, (err) => {
+        db.run('DELETE FROM user_authority WHERE  hostId = ? and userId =? ;', [hostId, userId], (err) => {
             if (err) {
                 rej(err);
             } else {
@@ -285,9 +286,9 @@ exports.removeUserAuthorityWarn = (userId) => {
 }
 
 // 获取所有有接收告警的用户
-exports.findAllUserAuthorityWarn = () => {
+exports.findAllUserAuthorityWarn = (hostId = defaultHostId) => {
     return new Promise((res, rej) => {
-        db.all('SELECT u.* from user_authority as ua left join user as u on ua.userId=u.id where ua.warn =?;', '1', (err, data) => {
+        db.all('SELECT u.* from user_authority as ua left join user as u on ua.userId=u.id where ua.warn =? and u.hostId=?;', ['1', hostId], (err, data) => {
             if (err) {
                 rej(err);
             } else {
