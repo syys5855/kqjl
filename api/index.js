@@ -313,16 +313,37 @@ let warnFun = require('../task/task-warning.js');
 
 ! function() {
     new scheduleWarn(function() {
-        db.findAllUserAuthorityWarn().then((users) => {
-            let warnOpenIds = users.map(user => {
-                return user.openId;
+        // 获取企业相关信息
+        let preState = Object.assign({}, boxLastState),
+            pArr = [];
+        Object.keys(preState).forEach(hostId => {
+            pArr.push(db.findBoxById(hostId));
+        });
+
+        Promise.all(pArr).then(boxs => {
+            console.log('boxs', boxs);
+            boxs.forEach(box => {
+                let { company, id: hostId } = box;
+                preState[hostId].company = company;
             });
-            console.log('warnOpenIds', JSON.stringify(warnOpenIds));
-            boxLastState = warnFun(boxLastState, warnOpenIds);
-            console.log('check done-->', JSON.stringify(boxLastState));
+
+
+            db.findAllUserAuthorityWarn().then((users) => {
+                users = [];
+                let warnOpenIds = users.map(user => {
+                    return user.openId;
+                });
+                console.log('warnOpenIds', JSON.stringify(warnOpenIds));
+                boxLastState = warnFun(preState, warnOpenIds);
+                console.log('check done-->', JSON.stringify(boxLastState));
+
+            }).catch(err => {
+                console.error('定时任务失败:获取通知用户失败');
+            });
         }).catch(err => {
-            console.error('定时任务失败:获取通知用户失败');
-        })
+            console.error('获取企业信息错误');
+        });
+
     }, 1).run();
 }();
 

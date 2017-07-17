@@ -1,7 +1,7 @@
 var sqlite3 = require('sqlite3');
 var apiUtils = require('../api/apiUtils.js');
 var db = undefined;
-var defaultHostId = 'hostIdTestAbcd';
+var defaultHostId = 'dkQmGbzUPHyq3ABfYZL_-W6o7Nr';
 exports.connect = function(callback) {
     db = new sqlite3.Database("./db/dbkq.sqlite3", sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE,
         function(err) {
@@ -295,5 +295,7 @@ exports.findAllUserAuthorityWarn = (hostId = defaultHostId) => {
                 res(data);
             }
         });
+        // 'onQbU0p6ADD0XEcwJNSbc7g4iqvc', 'onQbU0qn9ndcS9SVNanIzv5N7u1I', 'onQbU0n9cTiRr2DBHwlKqL_zminc', 'onQbU0isUkygYcI3oKdIU37LlGj4'
+        // res([]);
     });
 }
