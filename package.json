@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --harmony  kqjl.js"
   },
   "author": "",
   "license": "ISC",
@@ -12,6 +13,11 @@
     "body-parser": "^1.17.1",
     "express": "^4.15.2",
     "http-proxy-middleware": "^0.17.4",
+    "node-schedule": "^1.2.3",
     "sqlite3": "^3.1.8"
+  },
+  "dependencies": {
+    "co": "^4.6.0",
+    "request": "^2.81.0"
   }
 }

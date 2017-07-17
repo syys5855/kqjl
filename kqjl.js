@@ -4,6 +4,7 @@ var app = new express();
 var api = require('./api');
 var proxy = require('http-proxy-middleware');
 
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'static/box-list.html'));
 });

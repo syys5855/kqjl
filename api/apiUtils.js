@@ -163,6 +163,7 @@ exports.addZero = function(num) {
     return num < 10 ? '0' + num : num + '';
 }
 
+// date=>2017/03/08 11:09:01
 exports.toDateStr = function(date) {
     let addZero = function(num) {
         return num < 10 ? '0' + num : num + '';

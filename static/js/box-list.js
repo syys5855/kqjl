@@ -29,7 +29,7 @@ $(function() {
                                 className = 'danger';
                             } else if (dvalue >= 2.5 * 60000) {
                                 className = 'warning';
-                            } else if (!elem.version || !elem.hostIp) {
+                            } else if (!elem.version || !elem.version.split(",")[0] || !elem.hostIp) {
                                 className = 'danger';
                             }
                         } catch (e) {
@@ -56,7 +56,7 @@ $(function() {
     }
     // 点击事件-
     function getTr(conArr, type, elem) {
-        conArr.push('<tr class="' + type + '"><td>${_index}</td><td class="td-company">' + (elem.company || "") + '</td><td><a href="javascript:void(0)" class="link-hostId" >' + (elem.id) + '</a></td><td>' + (elem.hostIp || "") + '</td><td>' + (elem.version) + '</td><td>' + (elem.dateTime) + '</td><td><a href="../box-water.html?hostId=' + (elem.id) + "&company=" + encodeURI(elem.company || "") + '" style="margin-right:20px;">盒子流水</a><a href="../user-water.html?hostId=' + elem.id + "&company=" + encodeURI(elem.company || "") + '" style="margin-right:20px;">用户流水</a><a style="margin-right:20px;" href="../box-user.html?hostId=' + elem.id + "&company=" + encodeURI(elem.company || "") + '">用户列表</a><a  href="../days-list.html?hostId=' + elem.id + '&company=' + encodeURI(elem.company || "") + '">考勤记录</a></td></tr>');
+        conArr.push('<tr class="' + type + '"><td>${_index}</td><td class="td-company">' + (elem.company || "") + '</td><td><a href="javascript:void(0)" class="link-hostId" >' + (elem.id) + '</a></td><td>' + (elem.hostIp || "") + '</td><td>' + (elem.version) + '</td><td>' + (elem.dateTime) + '</td><td><a href="../box-water.html?hostId=' + (elem.id) + "&company=" + encodeURI(elem.company || "") + '" style="margin-right:20px;">盒子流水</a><a href="../user-water.html?hostId=' + elem.id + "&company=" + encodeURI(elem.company || "") + '" style="margin-right:20px;">用户流水</a><a style="margin-right:20px;" href="../box-user.html?hostId=' + elem.id + "&company=" + encodeURI(elem.company || "") + '">用户列表</a><a  href="../days-list.html?hostId=' + elem.id + '&company=' + encodeURI(elem.company || "") + '" style="margin-right:20px;">考勤记录</a><a href="../user-authority.html?hostId=' + elem.id + '&company=' + encodeURI(elem.company || "") + '">报警设置</a></td></tr>');
     }
 
     findBoxAll();

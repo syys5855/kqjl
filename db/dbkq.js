@@ -12,7 +12,8 @@ exports.connect = function(callback) {
 }
 
 exports.setup = function(callback) {
-
+    let todayStr = apiUtils.toDateStr(new Date());
+    todayStr = todayStr.split(' ')[0].replace(/\//g, '');
     // 盒子
     db.run('CREATE TABLE IF NOT EXISTS box(id VARCHAR(32) PRIMARY KEY,hostIp VARCHAR(32),createTime VARCHAR(32),version VARCHAR(32),dateTime VARCHAR(32),company VARCHAR(128));', (err) => {
         callback(err);
@@ -22,13 +23,18 @@ exports.setup = function(callback) {
         callback(err);
     });
     // 盒子流水表 event:{1:check_update,2:set_update} result:{1:check_udpate,2:set_update}
-    db.run('CREATE TABLE IF NOT EXISTS box_water_20170713(id INTEGER PRIMARY KEY AUTOINCREMENT,hostId VARCHAR(32),hostIp VARCHAR(32),version VARCHAR(43),event VARCHAR(32),result VARCHAR(32),dateTime VARCHAR(32));', err => {
+    db.run('CREATE TABLE IF NOT EXISTS box_water_' + todayStr + '(id INTEGER PRIMARY KEY AUTOINCREMENT,hostId VARCHAR(32),hostIp VARCHAR(32),version VARCHAR(43),event VARCHAR(32),result VARCHAR(32),dateTime VARCHAR(32));', err => {
         callback(err);
     });
     // 用户流水表 event:{1:push_request,2:subscribe,3:subscribe_webacht} result:{1:push_success,2:unsubscribe}
-    db.run('CREATE TABLE IF NOT EXISTS user_water_20170713(id INTEGER PRIMARY KEY AUTOINCREMENT,userId VARCHAR(32),openId VARCHAR(32),hostId VARCHAR(32),event VARCHAR(32),result VARCHAR(32),dateTime VARCHAR(32),createTime VARCHAR(32));', (err) => {
+    db.run('CREATE TABLE IF NOT EXISTS user_water_' + todayStr + '(id INTEGER PRIMARY KEY AUTOINCREMENT,userId VARCHAR(32),openId VARCHAR(32),hostId VARCHAR(32),event VARCHAR(32),result VARCHAR(32),dateTime VARCHAR(32),createTime VARCHAR(32));', (err) => {
         callback(err);
-    })
+    });
+
+    // 用户权限表
+    db.run('CREATE TABLE IF NOT EXISTS user_authority(id INTEGER PRIMARY KEY AUTOINCREMENT,userId VARCHAR(32),warn VARCHAR(1),FOREIGN KEY(userId) REFERENCES  user(id));', err => {
+        callback(err);
+    });
 }
 
 // 用户-添加
@@ -187,7 +193,6 @@ exports.pagination = function pagination(tableName, timeStr, hostId, all, func) 
                 reslove([]);
                 return;
             }
-            console.log(tname, hostId, timeStr, all);
             func(tname, hostId, timeStr, all).then((datas) => {
                 if (datas.length < all) {
                     let timeDate = new Date(timeStr);
@@ -225,4 +230,69 @@ exports.pagination = function pagination(tableName, timeStr, hostId, all, func) 
             });
         })
     }
+}
+
+// 通过hostId 来获取盒子信息
+exports.findBoxById = (id) => {
+    return new Promise((res, rej) => {
+        db.get(`select * from box where id = ?`, id, (err, data) => {
+            if (err) {
+                res(rej);
+            } else {
+                res(data);
+            }
+        })
+    });
+}
+
+
+// 获取用户的权限
+exports.findAllUserAuthority = () => {
+    return new Promise((res, rej) => {
+        db.all('select u.*, ua.warn as warn from user as u left join  user_authority as ua on u.id=ua.userId;', (err, data) => {
+            if (err) {
+                rej(err);
+            } else {
+                res(data);
+            }
+        })
+    })
+}
+
+// 添加一个接收告警通知
+exports.addUserAuthorityWarn = (userId) => {
+    return new Promise((res, rej) => {
+        db.run('INSERT INTO user_authority (id,userId,warn) VALUES(null,?,?);', [userId, '1'], (err) => {
+            if (err) {
+                rej(err);
+            } else {
+                res(null);
+            }
+        });
+    });
+}
+
+exports.removeUserAuthorityWarn = (userId) => {
+    return new Promise((res, rej) => {
+        db.run('DELETE FROM user_authority WHERE userId =?;', userId, (err) => {
+            if (err) {
+                rej(err);
+            } else {
+                res(null);
+            }
+        });
+    });
+}
+
+// 获取所有有接收告警的用户
+exports.findAllUserAuthorityWarn = () => {
+    return new Promise((res, rej) => {
+        db.all('SELECT u.* from user_authority as ua left join user as u on ua.userId=u.id where ua.warn =?;', '1', (err, data) => {
+            if (err) {
+                rej(err);
+            } else {
+                res(data);
+            }
+        });
+    });
 }

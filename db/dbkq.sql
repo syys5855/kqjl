@@ -11,7 +11,11 @@ CREATE TABLE IF NOT EXISTS box_water(id INTEGER PRIMARY KEY AUTOINCREMENT,hostId
 -- 用户流水表 event:{1:push_request,2:subscribe,3:subscribe_webacht,4:waiqin_checkin,5:bind_user,6:view,7:push_result} result:{1:push_success,2:unsubscribe}
 CREATE TABLE IF NOT EXISTS user_water(id INTEGER PRIMARY KEY AUTOINCREMENT,userId VARCHAR(32),openId VARCHAR(32),hostId VARCHAR(32),event VARCHAR(32),result VARCHAR(32),dateTime VARCHAR(32),createTime VARCHAR(32));
 
+-- 用户权限
+CREATE TABLE IF NOT EXISTS user_authority(id INTEGER PRIMARY KEY AUTOINCREMENT,userId VARCHAR(32),hostId VARCHAR(32),warn VARCHAR(1),FOREIGN KEY(userId) REFERENCES  user(id),FOREIGN KEY(hostId) REFERENCES box(id));
 
+
+CREATE TABLE IF NOT EXISTS user_authority(userId VARCHAR(32),hostId VARCHAR(32),warn VARCHAR(1),FOREIGN KEY(userId) REFERENCES  user(id),FOREIGN KEY(hostId) REFERENCES box(id),PRIMARY KEY(userId,hostId));
 -- INSERT INTO box_water (id,dateTime,version,event,result,hostid) values(null,1493123959938,'v1.0.0','1','1','hostid1');
 -- INSERT INTO box_water (id,dateTime,version,event,result,hostid) values(null,1493125156945,'v1.0.0','2','2','hostid1');
 -- INSERT INTO box_water (id,dateTime,version,event,result,hostid) values(null,1493125207251,'v1.0.0','1','2','hostid1');
@@ -50,3 +54,32 @@ SELECT * from user_water where hostId='testboxid00230' order by id desc limit 0,
 
 
 UPDATE box set id ='hostIdTestAbcd' where id ='testboxid00001';
+
+
+
+
+CREATE TABLE IF NOT EXISTS box_water_20170714(id INTEGER PRIMARY KEY AUTOINCREMENT,hostId VARCHAR(32),hostIp VARCHAR(32),version VARCHAR(43),event VARCHAR(32),result VARCHAR(32),dateTime VARCHAR(32));
+
+
+CREATE TABLE IF NOT EXISTS user_water_20170714(id INTEGER PRIMARY KEY AUTOINCREMENT,userId VARCHAR(32),openId VARCHAR(32),hostId VARCHAR(32),event VARCHAR(32),result VARCHAR(32),dateTime VARCHAR(32),createTime VARCHAR(32));
+
+
+
+INSERT INTO user_authority (id,userId,warn) VALUES (null,'userIdTestSyys',1);
+
+
+
+
+
+select u.*, ua.warn as warn from user as u left join  user_authority as ua on u.id=ua.userId;
+
+update user_authority set warn = "1" where userId='userIdTestSyys';
+
+INSERT INTO user_authority (id,userId,warn) VALUES(null,'userIdTestSyys','1');
+DELETE FROM user_authority WHERE userId ='userIdTestSyys';
+
+
+SELECT u.openId,ua.userId from user_authority as ua left join user as u on ua.userId=u.id where ua.warn ='1';
+
+
+ALTER TABLE user_authority ADD COLUMN hostId VARCHAR(32), FOREIGN KEY(hostId) REFERENCES box(id);

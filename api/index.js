@@ -4,6 +4,19 @@ var db = require('../db/dbkq.js');
 var apiUtils = require('./apiUtils.js');
 var router = express.Router();
 
+// 盒子最后活跃的状态
+// {hostId:{dateTime,version},...}
+let boxLastState = {};
+(() => {
+    let errFun = console.error;
+    let logFun = console.log;
+    console.error = function(...param) {
+        errFun.apply(null, [new Date().toLocaleString(), ...param]);
+    }
+    console.log = function(...param) {
+        logFun.apply(null, [new Date().toLocaleString(), ...param]);
+    }
+})();
 
 db.connect(function(err) {
     err && console.log(err);
@@ -123,6 +136,11 @@ router.post('/addBoxWater.json', (req, res) => {
             res.send(apiUtils.JsonResponse('failure', '添加失败'));
         } else {
             res.send(apiUtils.JsonResponse('success'));
+            // 更新盒子的最新状态
+            boxLastState[hostId] = {
+                dateTime,
+                version
+            };
         }
     });
 
@@ -245,6 +263,67 @@ router.get('/findBoxUserWater.json', (req, res) => {
         console.error(err);
         res.send(apiUtils.JsonResponse('failure', err));
     });
-})
+});
+
+// 获取用户权限
+router.get('/findAllUserAuthority.json', (req, res) => {
+    db.findAllUserAuthority().then(data => {
+        res.send(apiUtils.JsonResponse('success', data))
+    }).catch(err => {
+        res.send(apiUtils.JsonResponse('failure', '获取失败'));
+        console.error('findAllUserAuthorityErr', err);
+    })
+});
+
+// 用户添加警报权限
+router.post('/addUserAuthorityWarn.json', (req, res) => {
+    let { userId } = req.body;
+    if (!userId) {
+        console.log('addUserAuthorityWarnErr->userId', userId);
+        res.send(apiUtils.JsonResponse('failure', 'userId和hostId不能为空'));
+        return;
+    }
+    db.addUserAuthorityWarn(userId).then(() => {
+        res.send(apiUtils.JsonResponse('success', '添加成功'));
+    }).catch(err => {
+        console.error('addUserAuthorityWarnErr', err)
+        res.send(apiUtils.JsonResponse('failure', '操作失败'));
+    });
+});
+
+// 用户删除警报权限
+router.post('/removeUserAuthorityWarn.json', (req, res) => {
+    let { userId } = req.body;
+    if (!userId) {
+        console.log('removeUserAuthorityWarnErr->userId', userId);
+        res.send(apiUtils.JsonResponse('failure', 'userId不能为空'));
+        return;
+    }
+    db.removeUserAuthorityWarn(userId).then(() => {
+        res.send(apiUtils.JsonResponse('success', '操作成功'));
+    }).catch(err => {
+        console.error('removeUserAuthorityWarnErr' + err);
+        res.send(apiUtils.JsonResponse('failure', '操作失败'));
+    });
+});
+
+// 报警的定时任务
+let scheduleWarn = require('../task-schedule.js')
+let warnFun = require('../task/task-warning.js');
+
+! function() {
+    new scheduleWarn(function() {
+        db.findAllUserAuthorityWarn().then((users) => {
+            let warnOpenIds = users.map(user => {
+                return user.openId;
+            });
+            console.log('warnOpenIds', JSON.stringify(warnOpenIds));
+            boxLastState = warnFun(boxLastState, warnOpenIds);
+            console.log('check done-->', JSON.stringify(boxLastState));
+        }).catch(err => {
+            console.error('定时任务失败:获取通知用户失败');
+        })
+    }, 1).run();
+}();
 
 module.exports = router;

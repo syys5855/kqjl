@@ -46,7 +46,7 @@ $(function() {
         g_lastTime = undefined;
     paramBW = {
         hostId: hostId,
-        pageSize: 5,
+        pageSize: 100,
         lastTime: undefined
     };
 
