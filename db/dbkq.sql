@@ -61,7 +61,7 @@ UPDATE box set id ='hostIdTestAbcd' where id ='testboxid00001';
 CREATE TABLE IF NOT EXISTS box_water_20170714(id INTEGER PRIMARY KEY AUTOINCREMENT,hostId VARCHAR(32),hostIp VARCHAR(32),version VARCHAR(43),event VARCHAR(32),result VARCHAR(32),dateTime VARCHAR(32));
 
 
-CREATE TABLE IF NOT EXISTS user_water_20170714(id INTEGER PRIMARY KEY AUTOINCREMENT,userId VARCHAR(32),openId VARCHAR(32),hostId VARCHAR(32),event VARCHAR(32),result VARCHAR(32),dateTime VARCHAR(32),createTime VARCHAR(32));
+CREATE TABLE IF NOT EXISTS user_water_20170718(id INTEGER PRIMARY KEY AUTOINCREMENT,userId VARCHAR(32),openId VARCHAR(32),hostId VARCHAR(32),event VARCHAR(32),result VARCHAR(32),dateTime VARCHAR(32),createTime VARCHAR(32));
 
 
 
@@ -74,3 +74,29 @@ select distinct hostId,box.company,box.dateTime from user_water_20170717 as ua l
 
 
 select * from box where id not in (select distinct hostId from user_water_20170717 where event = 'push_request_login');
+
+
+select * from box where id in (select distinct hostId from user_water_2017 where)
+
+
+
+
+
+
+SELECT count(SELECT DISTINCT userId from user_water_20170717) from user_water_2017;
+
+
+SELECT * from box WHERE (SELECT count(DISTINCT userId),hostId from user_water_20170717 where hostId='hostIdTestAbcd')>2;
+
+
+
+
+SELECT count(DISTINCT userId) from user_water_20170717 where hostId='hostIdTestAbcd';
+
+
+SELECT * from box where id in (SELECT hostId from user_water_20170717  GROUP BY hostId  having count(DISTINCT userId)>2);
+
+
+
+
+SELECT box.*,tac.num from box left join (SELECT count(DISTINCT userId) as num,hostId from user_water_20170717 GROUP BY hostId) as tac on tac.hostId = box.id;

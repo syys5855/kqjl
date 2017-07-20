@@ -17,6 +17,11 @@ let boxLastState = {};
     console.log = function(...param) {
         logFun.apply(null, [new Date().toLocaleString(), ...param]);
     }
+
+    Date.prototype.addDays = function(days) {
+        let now = this;
+        return new Date(now.getTime() + days * 24 * 60 * 60000);
+    }
 })();
 
 db.connect(function(err) {
@@ -203,6 +208,130 @@ router.get('/findBoxAll.json', (req, res) => {
         }
     })
 });
+
+// 盒子-根据活跃人数来查询
+router.get('/findBoxList.json', (req, res) => {
+    let today = new Date(),
+        todayStr = apiUtils.toDateStr(today),
+        ttime = todayStr.split(' ')[0].replace(/\//g, ''),
+        { type = 'day', num = 0 } = req.query;
+
+    let tname = 'user_water_' + '20170717';
+    num = isNaN(+num) ? 0 : +num;
+
+    switch (type) {
+        case 'day':
+            handleDay(tname, num).then(data => {
+                res.send(apiUtils.JsonResponse('success', data));
+            }).catch(err => {
+                res.send(apiUtils.JsonResponse('failure', err));
+            });
+            break;
+        case 'week':
+            handleWeek(today, num).then(data => {
+                res.send(apiUtils.JsonResponse('success', data));
+            }).catch(err => {
+                res.send(apiUtils.JsonResponse('failure', err));
+            });
+            break;
+        case 'month':
+            handleMonth(today, num).then(data => {
+                res.send(apiUtils.JsonResponse('success', data));
+            }).catch(err => {
+                res.send(apiUtils.JsonResponse('failure', err));
+            });
+            break;
+    }
+
+    async function handleDay(tableName, num) {
+        let exist = await db.isExists(tableName);
+        let data = [];
+        if (exist) {
+            data = await db.findBoxList(tableName, num);
+        }
+        return data;
+    }
+
+    // 获取一天的每个盒子的活跃人数
+    async function findBoxAllActivity(tableName) {
+        let exist = await db.isExists(tableName);
+        let data = [];
+        if (exist) {
+            data = await db.findBoxAllActivity(tableName);
+        }
+        return data;
+    }
+
+    // 计算平均值
+    function getAverage(datas) {
+        let obj = {},
+            len = datas.length,
+            rst = [];
+        datas.forEach(adDatas => {
+            adDatas.forEach(dt => {
+                let { id, num } = dt;
+                if (!obj.hasOwnProperty(id)) {
+                    obj[id] = {
+                        num: 0,
+                        boxInfo: dt
+                    };
+                }
+                obj[id].num += num;
+            });
+        });
+        for (let [key, value] of Object.entries(obj)) {
+            rst.push({
+                boxInfo: value.boxInfo,
+                average: Math.floor(value.num / len)
+            });
+        }
+        return rst;
+    }
+
+
+    async function handleWeek(today, num) {
+        let weekdayNow = today.getDay() || 7;
+        let date = new Date(today.getTime());
+        let dates = [];
+        while (weekdayNow-- > 0) {
+            dates.push(date);
+            date = date.addDays(-1);
+        }
+        let pArr = [];
+        for (let dt of dates) {
+            dt = apiUtils.toDateStr(dt).split(" ")[0].replace(/\//g, '');
+            let _tname = 'user_water_' + dt;
+            pArr.push(findBoxAllActivity(_tname, num));
+        }
+        let datas = await Promise.all(pArr);
+        // 过滤信息
+        return getAverage(datas).filter(dt => {
+            return dt.average >= num;
+        });
+    }
+
+    async function handleMonth(today, num) {
+        let monthDate = today.getDate();
+        let date = new Date(today.getTime());
+        let dates = [];
+        while (monthDate-- > 0) {
+            dates.push(date);
+            date = date.addDays(-1);
+        }
+        let pArr = [];
+        for (let dt of dates) {
+            dt = apiUtils.toDateStr(dt).split(" ")[0].replace(/\//g, '');
+            let _tname = 'user_water_' + dt;
+            pArr.push(findBoxAllActivity(_tname, num));
+        }
+        let datas = await Promise.all(pArr);
+        // 过滤信息
+        return getAverage(datas).filter(dt => {
+            return dt.average >= num;
+        });
+    }
+
+})
 
 
 router.get('/findOneDayUserList.json', (req, res) => {
