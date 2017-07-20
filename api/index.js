@@ -362,7 +362,7 @@ router.get('/findExceptionBoxs.json', (req, res) => {
 }();
 
 
-// 每天上午九点半检测每个正常运行
+// 每天上午九点半检测每个盒子正常运行
 ! function() {
     var rule = new schedule.RecurrenceRule();
     rule.hour = 9;

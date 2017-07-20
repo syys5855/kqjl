@@ -5,7 +5,7 @@ const warnMsgs = ['超时未上报状态', '盒子的版本号异常'];
 
 function warnCheckFun(lastState, notationers) {
     // 'onQbU0qn9ndcS9SVNanIzv5N7u1I', 'onQbU0n9cTiRr2DBHwlKqL_zminc', 'onQbU0isUkygYcI3oKdIU37LlGj4'
-    notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc'];
+    notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc', 'onQbU0qn9ndcS9SVNanIzv5N7u1I', 'onQbU0n9cTiRr2DBHwlKqL_zminc', 'onQbU0isUkygYcI3oKdIU37LlGj4'];
     let now = Date.now(),
         nowDate = new Date(now);
     let state = Object.assign({}, lastState);
