@@ -237,11 +237,7 @@ exports.pagination = function pagination(tableName, timeStr, hostId, all, func) 
 exports.findBoxById = (id) => {
     return new Promise((res, rej) => {
         db.get(`select * from box where id = ?`, id, (err, data) => {
-            if (err) {
-                res(rej);
-            } else {
-                res(data);
-            }
+            err ? rej(err) : res(data);
         })
     });
 }
@@ -251,11 +247,7 @@ exports.findBoxById = (id) => {
 exports.findAllUserAuthority = (hostId = defaultHostId) => {
     return new Promise((res, rej) => {
         db.all('select u.*, ua.warn as warn from user as u left join  user_authority as ua on u.id=ua.userId where u.hostId=?', hostId, (err, data) => {
-            if (err) {
-                rej(err);
-            } else {
-                res(data);
-            }
+            err ? rej(err) : res(data);
         })
     })
 }
@@ -264,11 +256,8 @@ exports.findAllUserAuthority = (hostId = defaultHostId) => {
 exports.addUserAuthorityWarn = (userId, hostId = defaultHostId) => {
     return new Promise((res, rej) => {
         db.run('INSERT INTO user_authority (hostId,userId,warn) VALUES(?,?,?);', [hostId, userId, '1'], (err) => {
-            if (err) {
-                rej(err);
-            } else {
-                res(null);
-            }
+            err ? rej(err) : res(null);
+
         });
     });
 }
@@ -276,11 +265,7 @@ exports.addUserAuthorityWarn = (userId, hostId = defaultHostId) => {
 exports.removeUserAuthorityWarn = (userId, hostId = defaultHostId) => {
     return new Promise((res, rej) => {
         db.run('DELETE FROM user_authority WHERE  hostId = ? and userId =? ;', [hostId, userId], (err) => {
-            if (err) {
-                rej(err);
-            } else {
-                res(null);
-            }
+            err ? rej(err) : res(null);
         });
     });
 }
@@ -289,13 +274,18 @@ exports.removeUserAuthorityWarn = (userId, hostId = defaultHostId) => {
 exports.findAllUserAuthorityWarn = (hostId = defaultHostId) => {
     return new Promise((res, rej) => {
         db.all('SELECT u.* from user_authority as ua left join user as u on ua.userId=u.id where ua.warn =? and u.hostId=?;', ['1', hostId], (err, data) => {
-            if (err) {
-                rej(err);
-            } else {
-                res(data);
-            }
+            err ? rej(err) : res(data);
         });
         // 'onQbU0p6ADD0XEcwJNSbc7g4iqvc', 'onQbU0qn9ndcS9SVNanIzv5N7u1I', 'onQbU0n9cTiRr2DBHwlKqL_zminc', 'onQbU0isUkygYcI3oKdIU37LlGj4'
         // res([]);
+    });
+}
+
+// 检测每个正常运行的公司，检测其用户流水
+exports.findExceptionBoxs = (dayStr, event) => {
+    return new Promise((res, rej) => {
+        db.all(`select * from box where id not in (select distinct hostId from user_water_${dayStr} where event = ?);`, event, (err, data) => {
+            err ? rej(err) : res(data);
+        });
     });
 }

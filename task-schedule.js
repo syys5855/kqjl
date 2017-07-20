@@ -7,7 +7,6 @@ function initTask(func, delta = 5) {
 }
 
 initTask.prototype.run = function() {
-    console.log('task run');
     schedule.scheduleJob(this.rule, () => {
         this.func();
     })

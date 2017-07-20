@@ -1,8 +1,9 @@
 var express = require('express');
 var path = require('path');
 var app = new express();
-var api = require('./api');
 var proxy = require('http-proxy-middleware');
+require('babel-core/register');
+let api = require('./api');
 
 
 app.get('/', (req, res) => {

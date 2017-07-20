@@ -4,7 +4,8 @@ let warnUrl = 'http://sandbox.qingkaoqin.com/send2weixin?type=test_reportFault';
 const warnMsgs = ['超时未上报状态', '盒子的版本号异常'];
 
 function warnCheckFun(lastState, notationers) {
-    notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc', 'onQbU0qn9ndcS9SVNanIzv5N7u1I', 'onQbU0n9cTiRr2DBHwlKqL_zminc', 'onQbU0isUkygYcI3oKdIU37LlGj4'];
+    // 'onQbU0qn9ndcS9SVNanIzv5N7u1I', 'onQbU0n9cTiRr2DBHwlKqL_zminc', 'onQbU0isUkygYcI3oKdIU37LlGj4'
+    notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc'];
     let now = Date.now(),
         nowDate = new Date(now);
     let state = Object.assign({}, lastState);
@@ -13,7 +14,7 @@ function warnCheckFun(lastState, notationers) {
         let { version, dateTime, company } = v;
         if (!version || !version.split(",")[0] || (now - new Date(dateTime).getTime()) >= 5 * 60000) {
             notationers.forEach(nota => {
-                let msg = (!version || !version.split(",")[0]) ? `<${company}>${warnMsgs[1]}` : `<${company}>${warnMsgs[1]}`;
+                let msg = (!version || !version.split(",")[0]) ? `<${company}>${warnMsgs[1]}` : `<${company}>${warnMsgs[0]}`;
                 notation({ Hostid: k, touser: nota, keywords: [msg, dateTime] })
             });
             console.log("warnCheckFun dangerous--->", k, JSON.stringify(v));

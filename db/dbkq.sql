@@ -69,17 +69,8 @@ INSERT INTO user_authority (id,userId,warn) VALUES (null,'userIdTestSyys',1);
 
 
 
+select distinct hostId,box.company,box.dateTime from user_water_20170717 as ua left join box on  ua.hostId=box.id  where hostId not in (select distinct hostId from user_water_20170717 where event = 'push_request_login');
 
 
-select u.*, ua.warn as warn from user as u left join  user_authority as ua on u.id=ua.userId;
 
-update user_authority set warn = "1" where userId='userIdTestSyys';
-
-INSERT INTO user_authority (id,userId,warn) VALUES(null,'userIdTestSyys','1');
-DELETE FROM user_authority WHERE userId ='userIdTestSyys';
-
-
-SELECT u.openId,ua.userId from user_authority as ua left join user as u on ua.userId=u.id where ua.warn ='1';
-
-
-ALTER TABLE user_authority ADD COLUMN hostId VARCHAR(32), FOREIGN KEY(hostId) REFERENCES box(id);
+select * from box where id not in (select distinct hostId from user_water_20170717 where event = 'push_request_login');

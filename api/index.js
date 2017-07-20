@@ -3,6 +3,7 @@ var bodyParser = require('body-parser');
 var db = require('../db/dbkq.js');
 var apiUtils = require('./apiUtils.js');
 var router = express.Router();
+let schedule = require('node-schedule');
 
 // 盒子最后活跃的状态
 // {hostId:{dateTime,version},...}
@@ -136,11 +137,13 @@ router.post('/addBoxWater.json', (req, res) => {
             res.send(apiUtils.JsonResponse('failure', '添加失败'));
         } else {
             res.send(apiUtils.JsonResponse('success'));
-            // 更新盒子的最新状态
-            boxLastState[hostId] = {
-                dateTime,
-                version
-            };
+            if (version && version.split(',')[0]) {
+                // 更新盒子的最新状态
+                boxLastState[hostId] = {
+                    dateTime,
+                    version
+                };
+            }
         }
     });
 
@@ -157,7 +160,7 @@ router.post('/addBoxWater.json', (req, res) => {
             });
         }
         // 更新盒子的时间和版和hostIp
-        else if (!err && data && event === 'check_update') {
+        else if (!err && data && event === 'check_update' && version && version.split(',')[0]) {
             db.updateBox(hostId, dateTime, version, hostIp, (err) => {
                 if (err) {
                     console.log(err);
@@ -307,11 +310,22 @@ router.post('/removeUserAuthorityWarn.json', (req, res) => {
     });
 });
 
-// 报警的定时任务
-let scheduleWarn = require('../task-schedule.js')
-let warnFun = require('../task/task-warning.js');
+// 查询异常盒子
+router.get('/findExceptionBoxs.json', (req, res) => {
+    let { dateStr } = req.query;
+    let todayStr = apiUtils.toDateStr(new Date());
+    todayStr = todayStr.split(' ')[0].replace(/\//g, '');
+    db.findExceptionBoxs(dateStr || todayStr, 'push_request_login').then(data => {
+        res.send(apiUtils.JsonResponse('success', data));
+    }).catch(err => {
+        res.send(apiUtils.JsonResponse('failure', err));
+    })
+})
 
+// 报警的定时任务
 ! function() {
+    let scheduleWarn = require('../task-schedule.js')
+    let warnFun = require('../task/task-warning.js');
     new scheduleWarn(function() {
         // 获取企业相关信息
         let preState = Object.assign({}, boxLastState),
@@ -326,7 +340,6 @@ let warnFun = require('../task/task-warning.js');
                 let { company, id: hostId } = box;
                 preState[hostId].company = company;
             });
-
 
             db.findAllUserAuthorityWarn().then((users) => {
                 users = [];
@@ -345,6 +358,29 @@ let warnFun = require('../task/task-warning.js');
         });
 
     }, 1).run();
+    console.log('findAllUserAuthorityWarnSchduleRun');
+}();
+
+
+// 每天上午九点半检测每个正常运行
+! function() {
+    var rule = new schedule.RecurrenceRule();
+    rule.hour = 9;
+    rule.minute = 30;
+    schedule.scheduleJob(rule, () => {
+        let sendMsg = require('../task/task-exception.js');
+        let todayStr = apiUtils.toDateStr(new Date());
+        todayStr = todayStr.split(' ')[0].replace(/\//g, '');
+        db.findExceptionBoxs(todayStr, 'push_request_login').then(boxsInfo => {
+            boxsInfo.forEach(boxInfo => {
+                sendMsg(boxInfo);
+            });
+            console.log('findExceptionBoxsDone-->', JSON.stringify(boxsInfo));
+        }).catch(err => {
+            console.log('findExceptionBoxsErr', err);
+        })
+    });
+    console.log('findExceptionBoxsSchduleRun');
 }();
 
 module.exports = router;
