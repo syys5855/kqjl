@@ -146,19 +146,34 @@ exports.findBoxWaterById = function(tname, hostId, lastTime, many) {
 exports.findBoxAll = function(callback) {
     db.all('SELECT * FROM box order by dateTime desc;', (err, data) => {
         callback(err, data);
+    });
+}
+
+// 盒子-根据条件查询
+// 考勤记录的人数
+exports.findBoxList = (tableName, activityNum = 0) => {
+    return new Promise((res, rej) => {
+        db.all(`SELECT * from box where id in (SELECT hostId from ${tableName}  GROUP BY hostId  having count(DISTINCT userId)>=?) order by dateTime desc;`, activityNum, (err, data) => {
+            err ? rej(err) : res(data);
+        });
+    });
+}
+
+// 盒子-获取每一天盒子下的活跃用户
+exports.findBoxAllActivity = (tableName) => {
+    return new Promise((res, rej) => {
+        db.all(`SELECT box.*,ifnull(tac.num,0) as num from box left join (SELECT count(DISTINCT userId) as num ,hostId from ${tableName} GROUP BY hostId) as tac on tac.hostId = box.id;`, (err, data) => {
+            err ? rej(err) : res(data);
+        });
     })
 }
+
 
 // 盒子-下面所有用户的流水
 exports.findBoxUserWater = function(tname, hostId, lastTime, many) {
     return new Promise((res, rej) => {
         db.all(`SELECT * FROM ${tname} where hostId=? and dateTime < ? order by dateTime desc limit ?;`, [hostId, lastTime, many], (err, data) => {
-            if (err) {
-                console.error(err);
-                rej(err);
-            } else {
-                res(data);
-            }
+            err ? rej(err) : res(data);
         });
     });
 }
@@ -284,8 +299,20 @@ exports.findAllUserAuthorityWarn = (hostId = defaultHostId) => {
 // 检测每个正常运行的公司，检测其用户流水
 exports.findExceptionBoxs = (dayStr, event) => {
     return new Promise((res, rej) => {
-        db.all(`select * from box where id not in (select distinct hostId from user_water_${dayStr} where event = ?);`, event, (err, data) => {
+        db.all(`select * from box where id not in (select distinct hostId from user_water_${dayStr} where event = ?) and id in (SELECT distinct hostId from box_water_${dayStr} where event = 'check_update' and version like '_%,%');`, event, (err, data) => {
             err ? rej(err) : res(data);
         });
     });
+}
+
+exports.isExists = (table) => {
+    return new Promise((res, rej) => {
+        db.get(`select * from ${table} limit 1;`, (err, data) => {
+            if (err) {
+                res(false);
+            } else {
+                res(true);
+            }
+        });
+    })
 }
