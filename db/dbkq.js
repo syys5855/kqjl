@@ -299,7 +299,7 @@ exports.findAllUserAuthorityWarn = (hostId = defaultHostId) => {
 // 检测每个正常运行的公司，检测其用户流水
 exports.findExceptionBoxs = (dayStr, event) => {
     return new Promise((res, rej) => {
-        db.all(`select * from box where id not in (select distinct hostId from user_water_${dayStr} where event = ?);`, event, (err, data) => {
+        db.all(`select * from box where id not in (select distinct hostId from user_water_${dayStr} where event = ?) and id in (SELECT distinct hostId from box_water_${dayStr} where event = 'check_update' and version like '_%,%');`, event, (err, data) => {
             err ? rej(err) : res(data);
         });
     });

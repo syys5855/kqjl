@@ -222,21 +222,27 @@ router.get('/findBoxList.json', (req, res) => {
     switch (type) {
         case 'day':
             handleDay(tname, num).then(data => {
-                res.send(apiUtils.JsonResponse('success', data));
+                let rst = apiUtils.JsonResponse('success', data);
+                rst.time = Date.now();
+                res.send(rst);
             }).catch(err => {
                 res.send(apiUtils.JsonResponse('failure', err));
             });
             break;
         case 'week':
             handleWeek(today, num).then(data => {
-                res.send(apiUtils.JsonResponse('success', data));
+                let rst = apiUtils.JsonResponse('success', data);
+                rst.time = Date.now();
+                res.send(rst);
             }).catch(err => {
                 res.send(apiUtils.JsonResponse('failure', err));
             });
             break;
         case 'month':
             handleMonth(today, num).then(data => {
-                res.send(apiUtils.JsonResponse('success', data));
+                let rst = apiUtils.JsonResponse('success', data);
+                rst.time = Date.now();
+                res.send(rst);
             }).catch(err => {
                 res.send(apiUtils.JsonResponse('failure', err));
             });
@@ -304,10 +310,15 @@ router.get('/findBoxList.json', (req, res) => {
             pArr.push(findBoxAllActivity(_tname, num));
         }
         let datas = await Promise.all(pArr);
+        datas = getAverage(datas);
         // 过滤信息
-        return getAverage(datas).filter(dt => {
-            return dt.average >= num;
-        });
+        let rst = [];
+        datas.forEach(dt => {
+            if (dt.average >= num) {
+                rst.push(dt.boxInfo);
+            }
+        })
+        return rst;
     }
 
     async function handleMonth(today, num) {
@@ -325,13 +336,17 @@ router.get('/findBoxList.json', (req, res) => {
             pArr.push(findBoxAllActivity(_tname, num));
         }
         let datas = await Promise.all(pArr);
+        datas = getAverage(datas);
         // 过滤信息
-        return getAverage(datas).filter(dt => {
-            return dt.average >= num;
-        });
+        let rst = [];
+        datas.forEach(dt => {
+            if (dt.average >= num) {
+                rst.push(dt.boxInfo);
+            }
+        })
+        return rst;
     }
-
-})
+});
 
 
 router.get('/findOneDayUserList.json', (req, res) => {
