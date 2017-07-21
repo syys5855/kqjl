@@ -6,4 +6,5 @@ server.js
 .idea
 .svn
 .sass-cache
+*.log
 *.zip
