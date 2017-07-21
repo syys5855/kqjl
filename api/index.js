@@ -509,8 +509,8 @@ router.get('/findExceptionBoxs.json', (req, res) => {
 // 每天上午九点半检测每个盒子正常运行
 ! function() {
     var rule = new schedule.RecurrenceRule();
-    rule.hour = 9;
-    rule.minute = 30;
+    rule.hour = 14;
+    rule.minute = 10;
     schedule.scheduleJob(rule, () => {
         let sendMsg = require('../task/task-exception.js');
         let todayStr = apiUtils.toDateStr(new Date());
