@@ -216,7 +216,7 @@ router.get('/findBoxList.json', (req, res) => {
         ttime = todayStr.split(' ')[0].replace(/\//g, ''),
         { type = 'day', num = 0 } = req.query;
 
-    let tname = 'user_water_' + '20170717';
+    let tname = 'user_water_' + ttime;
     num = isNaN(+num) ? 0 : +num;
 
     switch (type) {

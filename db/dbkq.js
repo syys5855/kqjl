@@ -153,16 +153,22 @@ exports.findBoxAll = function(callback) {
 // 考勤记录的人数
 exports.findBoxList = (tableName, activityNum = 0) => {
     return new Promise((res, rej) => {
-        db.all(`SELECT * from box where id in (SELECT hostId from ${tableName}  GROUP BY hostId  having count(DISTINCT userId)>=?) order by dateTime desc;`, activityNum, (err, data) => {
-            err ? rej(err) : res(data);
-        });
+        if (activityNum === 0) {
+            db.all(`SELECT * FROM box order by dateTime desc;`, (err, data) => {
+                err ? rej(err) : res(data);
+            })
+        } else {
+            db.all(`SELECT * from box where id in (SELECT hostId from ${tableName}  GROUP BY hostId  having count(DISTINCT userId)>=?) order by dateTime desc;`, activityNum, (err, data) => {
+                err ? rej(err) : res(data);
+            });
+        }
     });
 }
 
 // 盒子-获取每一天盒子下的活跃用户
 exports.findBoxAllActivity = (tableName) => {
     return new Promise((res, rej) => {
-        db.all(`SELECT box.*,ifnull(tac.num,0) as num from box left join (SELECT count(DISTINCT userId) as num ,hostId from ${tableName} GROUP BY hostId) as tac on tac.hostId = box.id;`, (err, data) => {
+        db.all(`SELECT box.*,ifnull(tac.num,0) as num from box left join (SELECT count(DISTINCT userId) as num ,hostId from ${tableName} GROUP BY hostId) as tac on tac.hostId = box.id order by dateTime desc;`, (err, data) => {
             err ? rej(err) : res(data);
         });
     })
