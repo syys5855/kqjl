@@ -170,3 +170,24 @@ exports.toDateStr = function(date) {
     }
     return `${date.getFullYear()}/${addZero(date.getMonth()+1)}/${addZero(date.getDate())} ${addZero(date.getHours())}:${addZero(date.getMinutes())}:${addZero(date.getSeconds())}`;
 }
+
+// [201070308,..]
+exports.getMonthDays = function(date = new Date()) {
+    // 生成年月日信息
+    let month = date.getMonth(), //获去当前的月
+        year = date.getFullYear(),
+        days = [31, '', 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    (year % 4 == 0 && year % 100 != 0 || year % 400 == 0) ? days[1] = 29: days[1] = 28;
+
+    let i = 1,
+        arr = [], // 本月的日期列表
+        y = year,
+        m = (month + 1) < 10 ? '0' + (month + 1) : "" + (month + 1),
+        ym = y + m;
+    while (i <= days[month]) {
+        let d = i < 10 ? '0' + i : i;
+        arr.push(ym + d);
+        i++;
+    }
+    return arr;
+}

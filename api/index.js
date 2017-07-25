@@ -4,6 +4,7 @@ var db = require('../db/dbkq.js');
 var apiUtils = require('./apiUtils.js');
 var router = express.Router();
 let schedule = require('node-schedule');
+let writeXlsx = require('../task/export-activity.js');
 
 // 盒子最后活跃的状态
 // {hostId:{dateTime,version},...}
@@ -25,9 +26,13 @@ let boxLastState = {};
 })();
 
 db.connect(function(err) {
-    err && console.log(err);
+    if (!err) {
+
+    } else {
+        err && console.log(err);
+    }
 });
-db.setup(function(err) {
+db.setup(function(err, db) {
     err && console.log(err);
 });
 
@@ -142,7 +147,7 @@ router.post('/addBoxWater.json', (req, res) => {
             res.send(apiUtils.JsonResponse('failure', '添加失败'));
         } else {
             res.send(apiUtils.JsonResponse('success'));
-            if (version && version.split(',')[0]) {
+            if (version && version.split(',')[0] && event === 'check_update') {
                 // 更新盒子的最新状态
                 boxLastState[hostId] = {
                     dateTime,
@@ -214,7 +219,7 @@ router.get('/findBoxList.json', (req, res) => {
     let today = new Date(),
         todayStr = apiUtils.toDateStr(today),
         ttime = todayStr.split(' ')[0].replace(/\//g, ''),
-        { type = 'day', num = 0 } = req.query;
+        { type = 'day', num = 0, download = false, fileName = '在线统计.xlsx' } = req.query;
 
     let tname = 'user_water_' + ttime;
     num = isNaN(+num) ? 0 : +num;
@@ -222,27 +227,21 @@ router.get('/findBoxList.json', (req, res) => {
     switch (type) {
         case 'day':
             handleDay(tname, num).then(data => {
-                let rst = apiUtils.JsonResponse('success', data);
-                rst.time = Date.now();
-                res.send(rst);
+                download ? exportFile(data, num, fileName) : (res.send(successData(data)));
             }).catch(err => {
                 res.send(apiUtils.JsonResponse('failure', err));
             });
             break;
         case 'week':
             handleWeek(today, num).then(data => {
-                let rst = apiUtils.JsonResponse('success', data);
-                rst.time = Date.now();
-                res.send(rst);
+                download ? exportFile(data, num, fileName) : (res.send(successData(data)));
             }).catch(err => {
                 res.send(apiUtils.JsonResponse('failure', err));
             });
             break;
         case 'month':
             handleMonth(today, num).then(data => {
-                let rst = apiUtils.JsonResponse('success', data);
-                rst.time = Date.now();
-                res.send(rst);
+                download ? exportFile(data, num, fileName) : (res.send(successData(data)));
             }).catch(err => {
                 res.send(apiUtils.JsonResponse('failure', err));
             });
@@ -294,7 +293,6 @@ router.get('/findBoxList.json', (req, res) => {
         return rst;
     }
 
-
     async function handleWeek(today, num) {
         let weekdayNow = today.getDay() || 7;
         let date = new Date(today.getTime());
@@ -315,6 +313,7 @@ router.get('/findBoxList.json', (req, res) => {
         let rst = [];
         datas.forEach(dt => {
             if (dt.average >= num) {
+                dt.boxInfo.num = dt.average;
                 rst.push(dt.boxInfo);
             }
         })
@@ -341,9 +340,34 @@ router.get('/findBoxList.json', (req, res) => {
         let rst = [];
         datas.forEach(dt => {
             if (dt.average >= num) {
+                dt.boxInfo.num = dt.average;
                 rst.push(dt.boxInfo);
             }
         })
+        return rst;
+    }
+
+    function exportFile(data, wantedNum, fileName) {
+        let title = ['公司名字', '盒子ID', '上线人数'];
+
+        let content = data.map(dt => {
+            let { company, id, num } = dt;
+            return [company, id, num];
+        });
+
+        writeXlsx.write([
+            title,
+            ...content
+        ], fileName).then(filePath => {
+            res.download(filePath);
+        }).catch(err => {
+            res.send(apiUtils.JsonResponse('failure', err));
+        });
+    }
+
+    function successData(data) {
+        let rst = apiUtils.JsonResponse('success', data);
+        rst.time = Date.now();
         return rst;
     }
 });
@@ -464,7 +488,21 @@ router.get('/findExceptionBoxs.json', (req, res) => {
     }).catch(err => {
         res.send(apiUtils.JsonResponse('failure', err));
     })
-})
+});
+
+// 日周月导出excel
+router.get('/exportActivity.json', (req, res) => {
+    writeXlsx.write([
+        [1, 2, 3],
+        [5, 6, 7, 8, 9]
+    ], 'haha.xlsx').then(filePath => {
+        console.log(filePath);
+        res.download(filePath);
+    }).catch(err => {
+        res.send(apiUtils.JsonResponse('failure', err));
+    });
+});
+
 
 // 报警的定时任务
 ! function() {
@@ -505,12 +543,11 @@ router.get('/findExceptionBoxs.json', (req, res) => {
     console.log('findAllUserAuthorityWarnSchduleRun');
 }();
 
-
 // 每天上午九点半检测每个盒子正常运行
 ! function() {
-    var rule = new schedule.RecurrenceRule();
-    rule.hour = 14;
-    rule.minute = 10;
+    let rule = new schedule.RecurrenceRule();
+    rule.hour = 9;
+    rule.minute = 30;
     schedule.scheduleJob(rule, () => {
         let sendMsg = require('../task/task-exception.js');
         let todayStr = apiUtils.toDateStr(new Date());
@@ -525,6 +562,29 @@ router.get('/findExceptionBoxs.json', (req, res) => {
         })
     });
     console.log('findExceptionBoxsSchduleRun');
+}();
+
+// 每个月28号创建下个月的表
+! function() {
+    let rule = new schedule.RecurrenceRule(),
+        nextMonth = new Date(Date.now() + 10 * 24 * 3600 * 1000),
+        nextMDayStr = apiUtils.getMonthDays(nextMonth);
+
+    rule.date = 28;
+    rule.hour = 1;
+    rule.second = 30;
+    console.log('CreateNextMonthTableSchduleRun');
+    schedule.scheduleJob(rule, () => {
+        let pArr = [];
+        for (let dstr of nextMDayStr) {
+            pArr.push(db.createNextMonth(dstr));
+        }
+        Promise.all(pArr).catch(err => {
+            console.log('下一个月盒子流水、用户流水创建失败', err);
+        }).then(() => {
+            console.log('下一个月盒子流水、用户流水创建成功');
+        });
+    });
 }();
 
 module.exports = router;

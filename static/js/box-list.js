@@ -84,6 +84,20 @@ $(function() {
         });
     }
 
+    // 点击事件-导出
+    function exportExcel(param) {
+        $.ajax({
+            url: '/api/findBoxList.json',
+            method: 'get',
+            data: param,
+            dataType: 'json'
+        }).done(function(response) {
+            if (!response.success) {
+                alert(response.message);
+            }
+        });
+    }
+
     // 点击确定按钮
     $("#btnSure").click(function() {
         var company = $("#company").val().trim(),
@@ -116,9 +130,15 @@ $(function() {
     });
 
     // 点击日周月
-    $("#dateType").on('click', '.dateTypeItem', function() {
-        $(this).addClass('disabled').siblings().removeClass('disabled');
-    });
+    $("#btnExport").click(function() {
+        var type = $('#dateType').val();
+        var activeNum = $('#activeNum').val() || 0;
+        var a = document.createElement('a');
+        a.href = '/api/findBoxList.json?' + $.param({ type: type, num: activeNum, download: true });
+        var event = document.createEvent('MouseEvents');
+        event.initMouseEvent('click', true, false);
+        a.dispatchEvent(event);
+    })
 
     $(document).on('click', '.link-hostId', function(e) {
         var tdCompnay = $(this).parent().siblings('.td-company');

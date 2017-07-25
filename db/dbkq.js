@@ -8,6 +8,8 @@ exports.connect = function(callback) {
             if (err) {
                 util.log('FAIL on creating database ' + err);
                 callback(err);
+            } else {
+                callback(null, db);
             }
         });
 }
@@ -154,14 +156,15 @@ exports.findBoxAll = function(callback) {
 exports.findBoxList = (tableName, activityNum = 0) => {
     return new Promise((res, rej) => {
         if (activityNum === 0) {
-            db.all(`SELECT * FROM box order by dateTime desc;`, (err, data) => {
+            db.all(`SELECT box.*,ifnull(ta.num,0) as num from box left join (SELECT hostId,count(DISTINCT userId) as num from ${tableName}  GROUP BY hostId )  as ta on ta.hostId=box.id order by dateTime desc;`, (err, data) => {
                 err ? rej(err) : res(data);
-            })
+            });
         } else {
-            db.all(`SELECT * from box where id in (SELECT hostId from ${tableName}  GROUP BY hostId  having count(DISTINCT userId)>=?) order by dateTime desc;`, activityNum, (err, data) => {
+            db.all(`SELECT box.*,ifnull(ta.num,0) as num from box,(SELECT hostId,count(DISTINCT userId) as num from ${tableName}  GROUP BY hostId  having count(DISTINCT userId)>=?) as ta where box.id=ta.hostId order by dateTime desc;`, activityNum, (err, data) => {
                 err ? rej(err) : res(data);
             });
         }
+
     });
 }
 
@@ -321,4 +324,23 @@ exports.isExists = (table) => {
             }
         });
     })
+}
+
+// 创建下一个月的用户流水表和盒子流水表
+// time 20170717
+exports.createNextMonth = (time) => {
+    return new Promise((res,rej)=>{
+        db.serialize(()=>{
+            db.parallelize(()=>{
+                db.run('CREATE TABLE IF NOT EXISTS box_water_' + time + '(id INTEGER PRIMARY KEY AUTOINCREMENT,hostId VARCHAR(32),hostIp VARCHAR(32),version VARCHAR(43),event VARCHAR(32),result VARCHAR(32),dateTime VARCHAR(32));', err => {
+                    rej(err);
+                });
+                // 用户流水表 event:{1:push_request,2:subscribe,3:subscribe_webacht} result:{1:push_success,2:unsubscribe}
+                db.run('CREATE TABLE IF NOT EXISTS user_water_' + time + '(id INTEGER PRIMARY KEY AUTOINCREMENT,userId VARCHAR(32),openId VARCHAR(32),hostId VARCHAR(32),event VARCHAR(32),result VARCHAR(32),dateTime VARCHAR(32),createTime VARCHAR(32));', (err) => {
+                    rej(err);
+                });
+            });
+            res();
+        });
+    });
 }

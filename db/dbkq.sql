@@ -249,3 +249,14 @@ select hostId from box where bpx
 
 
 select * from box where id not in (select distinct hostId from user_water_20170720 where event = 'push_request_login') and id in (SELECT distinct hostId from box_water_20170720 where event ='check_update' and version like '_%,%');
+
+
+SELECT * from box where id in (SELECT hostId from user_water_20170717  GROUP BY hostId  having count(DISTINCT userId)>=0) order by dateTime desc;
+
+
+SELECT * from box where id in (SELECT hostId,count(DISTINCT userId) as num from user_water_20170717  GROUP BY hostId  having count(DISTINCT userId)>=0 ) as ta  order by dateTime desc;
+
+SELECT box.*,ifnull(ta.num,0) as num from box left join (SELECT hostId,count(DISTINCT userId) as num from user_water_20170717  GROUP BY hostId )  as ta on ta.hostId=box.id order by dateTime desc;
+
+
+
