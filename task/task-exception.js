@@ -6,7 +6,8 @@ const warnMsgs = ['公司推送异常'];
 
 function sendMsg(boxInfo, notationers) {
     // notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc', 'onQbU0qn9ndcS9SVNanIzv5N7u1I', 'onQbU0n9cTiRr2DBHwlKqL_zminc', 'onQbU0isUkygYcI3oKdIU37LlGj4'];
-    notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc', 'onQbU0lhAjHknN5uI3PdEo1VhcN8'];
+    // notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc', 'onQbU0lhAjHknN5uI3PdEo1VhcN8'];
+    notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc', 'onQbU0qn9ndcS9SVNanIzv5N7u1I', 'onQbU0n9cTiRr2DBHwlKqL_zminc', 'onQbU0isUkygYcI3oKdIU37LlGj4'];
     let { company, dateTime, id: hostId } = boxInfo;
     notationers.forEach(nota => {
         let msg = `<${company}>${warnMsgs[0]}`;
