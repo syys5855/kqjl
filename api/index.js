@@ -67,7 +67,7 @@ router.post('/addUserWater.json', (req, res) => {
 
 
     // 判断是否为空
-    if (!userId || !hostId || !event) {
+    if ((!userId && !openId) || !hostId || !event) {
         res.send(apiUtils.JsonResponse('failure', 'error: userId,hostId,openId,event is empty'));
         return;
     }
@@ -148,11 +148,15 @@ router.post('/addBoxWater.json', (req, res) => {
         } else {
             res.send(apiUtils.JsonResponse('success'));
             if (version && version.split(',')[0] && event === 'check_update') {
-                // 更新盒子的最新状态
-                boxLastState[hostId] = {
-                    dateTime,
-                    version
-                };
+                db.findBoxById(hostId).then((box) => {
+                    if (box.recwarn && box.recwarn === 'true') {
+                        // 更新盒子的最新状态
+                        boxLastState[hostId] = {
+                            dateTime,
+                            version
+                        };
+                    }
+                });
             }
         }
     });
@@ -219,9 +223,8 @@ router.get('/findBoxList.json', (req, res) => {
     let today = new Date(),
         todayStr = apiUtils.toDateStr(today),
         ttime = todayStr.split(' ')[0].replace(/\//g, ''),
-        { type = 'day', num = 0, download = false, fileName = '在线统计.xlsx' } = req.query;
-
-    let tname = 'user_water_' + ttime;
+        { type = 'day', num = 0, download = false, fileName = '在线统计.xlsx', dateStr = ttime } = req.query;
+    let tname = 'user_water_' + dateStr;
     num = isNaN(+num) ? 0 : +num;
 
     switch (type) {
@@ -503,6 +506,18 @@ router.get('/exportActivity.json', (req, res) => {
     });
 });
 
+// 更新盒子是否 接收推送
+router.post('/updateBoxRecWarn.json', (req, res) => {
+    let param = req.body,
+        { hostId, status } = param;
+
+    db.updateBoxRecWarn(hostId, status).then(() => {
+        res.send(apiUtils.JsonResponse('success'));
+    }).catch(err => {
+        res.send(apiUtils.JsonResponse('failure', '更新失败'));
+    });
+});
+
 
 // 报警的定时任务
 ! function() {
@@ -586,5 +601,6 @@ router.get('/exportActivity.json', (req, res) => {
         });
     });
 }();
+
 
 module.exports = router;
