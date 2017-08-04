@@ -148,15 +148,11 @@ router.post('/addBoxWater.json', (req, res) => {
         } else {
             res.send(apiUtils.JsonResponse('success'));
             if (version && version.split(',')[0] && event === 'check_update') {
-                db.findBoxById(hostId).then((box) => {
-                    if (box.recwarn && box.recwarn === 'true') {
-                        // 更新盒子的最新状态
-                        boxLastState[hostId] = {
-                            dateTime,
-                            version
-                        };
-                    }
-                });
+                // 在 任务中过滤无效的数据
+                boxLastState[hostId] = {
+                    dateTime,
+                    version
+                };
             }
         }
     });
@@ -532,24 +528,30 @@ router.post('/updateBoxRecWarn.json', (req, res) => {
         });
 
         Promise.all(pArr).then(boxs => {
-            console.log('boxs', boxs);
             boxs.forEach(box => {
-                let { company, id: hostId } = box;
+                let { company, id: hostId, recwarn } = box;
                 preState[hostId].company = company;
+                if (recwarn === 'false' || !recwarn) {
+                    delete preState[hostId];
+                }
             });
 
-            db.findAllUserAuthorityWarn().then((users) => {
-                users = [];
-                let warnOpenIds = users.map(user => {
-                    return user.openId;
-                });
-                console.log('warnOpenIds', JSON.stringify(warnOpenIds));
-                boxLastState = warnFun(preState, warnOpenIds);
-                console.log('check done-->', JSON.stringify(boxLastState));
+            // 因为推送用户写死的
+            boxLastState = warnFun(preState);
+            console.log('check done-->', JSON.stringify(boxLastState));
 
-            }).catch(err => {
-                console.error('定时任务失败:获取通知用户失败');
-            });
+            // db.findAllUserAuthorityWarn().then((users) => {
+            //     users = [];
+            //     let warnOpenIds = users.map(user => {
+            //         return user.openId;
+            //     });
+            //     console.log('warnOpenIds', JSON.stringify(warnOpenIds));
+            //     boxLastState = warnFun(preState, warnOpenIds);
+            //     console.log('check done-->', JSON.stringify(boxLastState));
+
+            // }).catch(err => {
+            //     console.error('定时任务失败:获取通知用户失败');
+            // });
         }).catch(err => {
             console.error('获取企业信息错误');
         });
