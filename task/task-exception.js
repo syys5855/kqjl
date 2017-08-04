@@ -5,9 +5,13 @@ let warnUrl = 'http://sandbox.qingkaoqin.com/send2weixin?type=test_reportFault';
 const warnMsgs = ['公司推送异常'];
 
 function sendMsg(boxInfo, notationers) {
-    // notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc', 'onQbU0qn9ndcS9SVNanIzv5N7u1I', 'onQbU0n9cTiRr2DBHwlKqL_zminc', 'onQbU0isUkygYcI3oKdIU37LlGj4'];
-    // notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc', 'onQbU0lhAjHknN5uI3PdEo1VhcN8'];
-    notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc', 'onQbU0qn9ndcS9SVNanIzv5N7u1I', 'onQbU0n9cTiRr2DBHwlKqL_zminc', 'onQbU0isUkygYcI3oKdIU37LlGj4'];
+    // notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc'];
+    // onQbU0p6ADD0XEcwJNSbc7g4iqvc 沈my
+    // onQbU0qn9ndcS9SVNanIzv5N7u1I 啸雷86
+    // onQbU0n9cTiRr2DBHwlKqL_zminc 吕强
+    // onQbU0isUkygYcI3oKdIU37LlGj4 谢忠持
+    // onQbU0vMw5lE2csf-RfpgRJp1Lz4 谢惠娟
+    notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc', 'onQbU0qn9ndcS9SVNanIzv5N7u1I', 'onQbU0n9cTiRr2DBHwlKqL_zminc', 'onQbU0isUkygYcI3oKdIU37LlGj4', 'onQbU0vMw5lE2csf-RfpgRJp1Lz4'];
     let { company, dateTime, id: hostId } = boxInfo;
     notationers.forEach(nota => {
         let msg = `<${company}>${warnMsgs[0]}`;

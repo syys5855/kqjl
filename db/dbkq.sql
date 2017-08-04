@@ -260,3 +260,9 @@ SELECT box.*,ifnull(ta.num,0) as num from box left join (SELECT hostId,count(DIS
 
 
 
+-- curl 'http://sandbox.qingkaoqin.com/send2weixin?type=test_reportFault' -d '{ "Hostid": "dkQmGbzUPHyq3ABfYZL_-W6o7Nr", "touser": "onQbU0vMw5lE2csf-RfpgRJp1Lz4", "keywords": ["<杭州复睿>超时未上报状态", "14:59:11"] }'
+
+-- 调整box的信息---添加是否提醒的标识
+ALTER TABLE box add COLUMN recwarn VARCHAR(32) DEFAULT false;
+
+create table temp as SELECT id,hostIp,createTime,version,dateTime,company from box;

@@ -18,7 +18,7 @@ exports.setup = function(callback) {
     let todayStr = apiUtils.toDateStr(new Date());
     todayStr = todayStr.split(' ')[0].replace(/\//g, '');
     // 盒子
-    db.run('CREATE TABLE IF NOT EXISTS box(id VARCHAR(32) PRIMARY KEY,hostIp VARCHAR(32),createTime VARCHAR(32),version VARCHAR(32),dateTime VARCHAR(32),company VARCHAR(128));', (err) => {
+    db.run('CREATE TABLE IF NOT EXISTS box(id VARCHAR(32) PRIMARY KEY,hostIp VARCHAR(32),createTime VARCHAR(32),version VARCHAR(32),dateTime VARCHAR(32),company VARCHAR(128),recwarn VARCHAR(32) DEFAULT false);', (err) => {
         callback(err);
     });
     // 用户表 
@@ -190,8 +190,20 @@ exports.findBoxUserWater = function(tname, hostId, lastTime, many) {
 
 // 盒子-更新公司的名字
 exports.updateBoxCompanyName = function(company, id, callback) {
-    db.run('UPDATE box set company =? where id=?;', [company, id], (err) => {
-        callback(err);
+        db.run('UPDATE box set company =? where id=?;', [company, id], (err) => {
+            callback(err);
+        })
+    }
+    /**
+     * 盒子-更新是否接收通知
+     * id 盒子id
+     * status:string 'true'|'false' fasle 不开启
+     */
+exports.updateBoxRecWarn = function(id, status) {
+    return new Promise((res, rej) => {
+        db.run('UPDATE box set recwarn = ? where id =?', [status, id], (err) => {
+            err ? rej(err) : res();
+        })
     })
 }
 
@@ -308,7 +320,7 @@ exports.findAllUserAuthorityWarn = (hostId = defaultHostId) => {
 // 检测每个正常运行的公司，检测其用户流水
 exports.findExceptionBoxs = (dayStr, event) => {
     return new Promise((res, rej) => {
-        db.all(`select * from box where id not in (select distinct hostId from user_water_${dayStr} where event = ?) and id in (SELECT distinct hostId from box_water_${dayStr} where event = 'check_update' and version like '_%,%');`, event, (err, data) => {
+        db.all(`select * from box where recwarn = 'true' and id not in (select distinct hostId from user_water_${dayStr} where event = ?) and id in (SELECT distinct hostId from box_water_${dayStr} where event = 'check_update' and version like '_%,%');`, event, (err, data) => {
             err ? rej(err) : res(data);
         });
     });
@@ -329,9 +341,9 @@ exports.isExists = (table) => {
 // 创建下一个月的用户流水表和盒子流水表
 // time 20170717
 exports.createNextMonth = (time) => {
-    return new Promise((res,rej)=>{
-        db.serialize(()=>{
-            db.parallelize(()=>{
+    return new Promise((res, rej) => {
+        db.serialize(() => {
+            db.parallelize(() => {
                 db.run('CREATE TABLE IF NOT EXISTS box_water_' + time + '(id INTEGER PRIMARY KEY AUTOINCREMENT,hostId VARCHAR(32),hostIp VARCHAR(32),version VARCHAR(43),event VARCHAR(32),result VARCHAR(32),dateTime VARCHAR(32));', err => {
                     rej(err);
                 });

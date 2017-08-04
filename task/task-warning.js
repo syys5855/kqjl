@@ -4,15 +4,20 @@ let warnUrl = 'http://sandbox.qingkaoqin.com/send2weixin?type=test_reportFault';
 const warnMsgs = ['超时未上报状态', '盒子的版本号异常'];
 
 function warnCheckFun(lastState, notationers) {
-    // 'onQbU0qn9ndcS9SVNanIzv5N7u1I', 'onQbU0n9cTiRr2DBHwlKqL_zminc', 'onQbU0isUkygYcI3oKdIU37LlGj4'
-    notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc', 'onQbU0qn9ndcS9SVNanIzv5N7u1I', 'onQbU0n9cTiRr2DBHwlKqL_zminc', 'onQbU0isUkygYcI3oKdIU37LlGj4'];
+    // notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc'];
+    // onQbU0p6ADD0XEcwJNSbc7g4iqvc 沈my
+    // onQbU0qn9ndcS9SVNanIzv5N7u1I 啸雷86
+    // onQbU0n9cTiRr2DBHwlKqL_zminc 吕强
+    // onQbU0isUkygYcI3oKdIU37LlGj4 谢忠持
+    // onQbU0vMw5lE2csf-RfpgRJp1Lz4 谢惠娟
+    notationers = ['onQbU0p6ADD0XEcwJNSbc7g4iqvc', 'onQbU0qn9ndcS9SVNanIzv5N7u1I', 'onQbU0n9cTiRr2DBHwlKqL_zminc', 'onQbU0isUkygYcI3oKdIU37LlGj4', 'onQbU0vMw5lE2csf-RfpgRJp1Lz4'];
     let now = Date.now(),
         nowDate = new Date(now);
     let state = Object.assign({}, lastState);
     console.log("start check", JSON.stringify(state));
     for (let [k, v] of Object.entries(state)) {
         let { version, dateTime, company } = v;
-        if (!version || !version.split(",")[0] || (now - new Date(dateTime).getTime()) >= 5 * 60000) {
+        if (!version || !version.split(",")[0] || (now - new Date(dateTime).getTime()) >= 9 * 60000) {
             notationers.forEach(nota => {
                 let msg = (!version || !version.split(",")[0]) ? `<${company}>${warnMsgs[1]}` : `<${company}>${warnMsgs[0]}`;
                 notation({ Hostid: k, touser: nota, keywords: [msg, dateTime] })
