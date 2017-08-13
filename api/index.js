@@ -91,7 +91,7 @@ router.post('/addUserWater.json', (req, res) => {
                 if (err) {
                     console.log(err);
                 } else {
-                    console.log('添加用户成功--->', userId);
+                    // console.log('添加用户成功--->', userId);
                 }
             })
         }
@@ -101,7 +101,7 @@ router.post('/addUserWater.json', (req, res) => {
                 if (err) {
                     console.log(err);
                 } else {
-                    console.log('更新用户hostId成功--->%s->%s', userId, hostId);
+                    // console.log('更新用户hostId成功--->%s->%s', userId, hostId);
                 }
             });
         }
@@ -165,7 +165,7 @@ router.post('/addBoxWater.json', (req, res) => {
                 if (err) {
                     console.log(err);
                 } else {
-                    console.log('添加盒子成功--->', hostId);
+                    // console.log('添加盒子成功--->', hostId);
                 }
             });
         }
@@ -175,7 +175,7 @@ router.post('/addBoxWater.json', (req, res) => {
                 if (err) {
                     console.log(err);
                 } else {
-                    console.log('更新盒子时间成功--->%s->%s->%s', hostId, dateTime, version);
+                    // console.log('更新盒子时间成功--->%s->%s->%s', hostId, dateTime, version);
                 }
             });
         }
@@ -495,7 +495,7 @@ router.get('/exportActivity.json', (req, res) => {
         [1, 2, 3],
         [5, 6, 7, 8, 9]
     ], 'haha.xlsx').then(filePath => {
-        console.log(filePath);
+        // console.log(filePath);
         res.download(filePath);
     }).catch(err => {
         res.send(apiUtils.JsonResponse('failure', err));
@@ -553,17 +553,17 @@ router.post('/updateBoxRecWarn.json', (req, res) => {
             //     console.error('定时任务失败:获取通知用户失败');
             // });
         }).catch(err => {
-            console.error('获取企业信息错误');
+            console.error('获取企业信息错误', err);
         });
 
     }, 1).run();
     console.log('findAllUserAuthorityWarnSchduleRun');
 }();
 
-// 每天上午九点半检测每个盒子正常运行
+// 每天上午十点半检测每个盒子正常运行
 ! function() {
     let rule = new schedule.RecurrenceRule();
-    rule.hour = 9;
+    rule.hour = 10;
     rule.minute = 30;
     schedule.scheduleJob(rule, () => {
         let sendMsg = require('../task/task-exception.js');

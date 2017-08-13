@@ -11,6 +11,6 @@ app.get('/', (req, res) => {
 });
 app.use('/api', api);
 app.use(express.static('static'));
-var server = app.listen('2333', function() {
+var server = app.listen('2334', function() {
     console.log('start at ', server.address().address, server.address().port);
 })

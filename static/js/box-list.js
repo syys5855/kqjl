@@ -11,8 +11,18 @@ $(function() {
                 if (response.success) {
                     var items = response.items,
                         time = response.time,
-                        trhtml = handleBoxList(items, time);
-                    $("#boxListBody").html(trhtml);
+                        checkedArr = [],
+                        uncheckedArr = [];
+
+                    // 获取勾选的和没有勾选的
+                    items.forEach(function(elem) {
+                        elem.recwarn === "false" ? uncheckedArr.push(elem) : checkedArr.push(elem);
+                    });
+
+                    var checkedTrhtml = handleBoxList(checkedArr, time),
+                        uncheckedTrhtml = handleBoxList(uncheckedArr, time);
+
+                    $("#boxListBody").html(checkedTrhtml + uncheckedTrhtml);
                 }
             });
 
@@ -26,6 +36,7 @@ $(function() {
             warning: [],
             normal: []
         };
+
         items.forEach(function(elem, index) {
             var className = 'normal';
             try {
@@ -60,7 +71,7 @@ $(function() {
         return rstArr.join();
     }
 
-    // 点击事件-
+    // 生成每一行
     function getTr(conArr, type, elem) {
         conArr.push('<tr class="' + type + '"><td>${_index}</td><td class="td-company">' + (elem.company || "") + '</td><td><a href="javascript:void(0)" class="link-hostId" >' + (elem.id) + '</a></td><td>' + (elem.hostIp || "") + '</td><td>' + (elem.version) + '</td><td>' + (elem.dateTime) + '</td><td><a href="../box-water.html?hostId=' + (elem.id) + "&company=" + encodeURI(elem.company || "") + '" style="margin-right:20px;">盒子流水</a><a href="../user-water.html?hostId=' + elem.id + "&company=" + encodeURI(elem.company || "") + '" style="margin-right:20px;">用户流水</a><a style="margin-right:20px;" href="../box-user.html?hostId=' + elem.id + "&company=" + encodeURI(elem.company || "") + '">用户列表</a><a  href="../days-list.html?hostId=' + elem.id + '&company=' + encodeURI(elem.company || "") + '" style="margin-right:20px;">考勤记录</a></td><td class="text-center"><input class="toggleRecwarn" diy-id=' + elem.id + ' type="checkbox" ' + ((elem.recwarn === "true") ? 'checked' : '') + '></td></tr>');
     }
